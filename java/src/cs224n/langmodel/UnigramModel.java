@@ -18,9 +18,10 @@ public class SmoothedUnigramLanguageModel implements LanguageModel {
     
     private static final String STOP = "</S>";
     
-    public Counter<String> wordCounter;
-    private Pair<Double, Double> regFunc;
-    private int[] frequencyCount;
+    private Counter<String> wordCounter;
+    //private Pair<Double, Double> regFunc;
+    private double discount = .75;
+    private double alpha;
     private double total;
     
     
@@ -56,75 +57,30 @@ public class SmoothedUnigramLanguageModel implements LanguageModel {
      */
     public void train(Collection<List<String>> sentences) {
 	wordCounter = new Counter<String>();
-	double maxCount = 0;
-
 	for (List<String> sentence : sentences) {
 	    List<String> stoppedSentence = new ArrayList<String>(sentence);
 	    stoppedSentence.add(STOP);
 	    for (String word : stoppedSentence) {
 		wordCounter.incrementCount(word, 1.0);
-		if (wordCounter.getCount(word) > maxCount)
-		    maxCount = wordCounter.getCount(word);
 	    }
 	}
-	frequencyCount = new int[(int)maxCount+1];
-
-	for(String key : wordCounter.keySet())
-	    frequencyCount[(int)wordCounter.getCount(key)]++;
-
-	total = wordCounter.totalCount();
-
-	ArrayList<Pair<Double, Double> > dataPoints = new ArrayList<Pair<Double, Double> >();
-
-	for(int i = 1; i < frequencyCount.length ;i++){	    
-	    if(frequencyCount[i] == 0)
-		continue;
-	    double firstVal = Math.log(i), secondVal = Math.log(frequencyCount[i]);
-	    dataPoints.add(new Pair<Double, Double>(firstVal, secondVal));
-	}
-
-	linearRegression(dataPoints);
-
-	total = 0;
+	total = (int)wordCounter.totalCount();
+	
+	double sum = 0.0;	
 	for(String key : wordCounter.keySet()){
-	    int count = (int)wordCounter.getCount(key);
-	    total += (count + 1) * simpleCount(count + 1) / simpleCount(count);
+	    sum += (wordCounter.getCount(key) - discount) / total;
 	}
-	total += simpleCount(1);
+	
+	alpha = 1.0 - sum;
     }
-
-    private void linearRegression(ArrayList<Pair<Double, Double> > dataPoints){
-	double a = 1, b = 1;
-	double alpha = .0001;
-	while(true){
-	    double asum=0, bsum=0;
-	    for(Pair<Double, Double> p : dataPoints){
-		double guess = p.getSecond() - (a + b * p.getFirst());
-
-		asum += guess;
-		bsum += guess * p.getFirst();
-	    }
-	    if(Math.abs(asum) < .001 && Math.abs(bsum) < .001)
-		break;
-	    a += alpha * asum;
-	    b += alpha * bsum;
-	}
-	regFunc = new Pair<Double,Double>(Math.pow(Math.E, a), b);
-    }
-
-    private double simpleCount(int freq){
-	double ret = regFunc.getFirst() * Math.pow(freq, regFunc.getSecond());
-	return ret;
-    }
-    
-    // -----------------------------------------------------------------------
     
     private double getWordProbability(String word) {
 	int count = (int)wordCounter.getCount(word);
-	if (count == 0) {                   // unknown word
-	    return simpleCount(1) / total;
+	if(count == 0){
+	    return alpha;
 	}
-	return (count + 1) * simpleCount(count+1) / simpleCount(count) / total;
+
+	return (double)(count - discount) / total;
     }
     
     /**
@@ -169,12 +125,8 @@ public class SmoothedUnigramLanguageModel implements LanguageModel {
 	}
 	// remember to add the UNK. In this EmpiricalUnigramLanguageModel
 	// we assume there is only one UNK, so we add...
-	sum += simpleCount(1) / total;
+	sum += alpha;
 	return sum;
-    }
-    
-    public double getTotal() {
-	return total;
     }
     
     /**
@@ -187,7 +139,7 @@ public class SmoothedUnigramLanguageModel implements LanguageModel {
 	double sample = Math.random();
 	double sum = 0.0;
 	for (String word : wordCounter.keySet()) {
-	    sum += (wordCounter.getCount(word) / total);
+	    sum += wordCounter.getCount(word) / total;
 	    if (sum > sample) {
 		return word;
 	    }
