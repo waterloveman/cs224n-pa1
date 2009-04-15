@@ -1,6 +1,6 @@
 package cs224n.langmodel;
 
-import cs224n.langmodel.EmpiricalUnigramLanguageModel;
+import cs224n.langmodel.SmoothedUnigramLanguageModel;
 import cs224n.langmodel.BigramModel;
 import cs224n.langmodel.TrigramModel;
 
@@ -19,7 +19,7 @@ public class SimpleBackoffModel implements LanguageModel {
     private static final String STOP = "</S>";
     
 
-    private EmpiricalUnigramLanguageModel Unigram;
+    private SmoothedUnigramLanguageModel Unigram;
     private BigramModel Bigram;
     private TrigramModel Trigram;
     
@@ -29,7 +29,7 @@ public class SimpleBackoffModel implements LanguageModel {
      * Constructs a new, empty unigram language model.
      */
     public SimpleBackoffModel() {
-	Unigram = new EmpiricalUnigramLanguageModel();
+	Unigram = new SmoothedUnigramLanguageModel();
 	Bigram = new BigramModel();
 	Trigram = new TrigramModel();
     }
@@ -42,7 +42,7 @@ public class SimpleBackoffModel implements LanguageModel {
      */
     public SimpleBackoffModel(Collection<List<String>> sentences) {
 	this();
-	Unigram = new EmpiricalUnigramLanguageModel(sentences);
+	Unigram = new SmoothedUnigramLanguageModel(sentences);
 	Bigram = new BigramModel(sentences);
 	Trigram = new TrigramModel(sentences); 
     }
