@@ -16,6 +16,7 @@ public class BigramModel implements LanguageModel {
     
     private CounterMap<String, String> wordCounter;
     private double total;
+    private double discount = .75;
     
     
     // -----------------------------------------------------------------------
@@ -48,6 +49,7 @@ public class BigramModel implements LanguageModel {
      * frequencies of all words (including the stop token) over the whole
      * collection of sentences are compiled.
      */
+
     public void train(Collection<List<String>> sentences) {
 	wordCounter = new CounterMap<String, String>();
 	for (List<String> sentence : sentences) {
