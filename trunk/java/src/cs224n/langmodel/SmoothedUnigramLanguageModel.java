@@ -18,7 +18,7 @@ public class SmoothedUnigramLanguageModel implements LanguageModel {
     
     private static final String STOP = "</S>";
     
-    private Counter<String> wordCounter;
+    public Counter<String> wordCounter;
     private Pair<Double, Double> regFunc;
     private int[] frequencyCount;
     private double total;
@@ -173,6 +173,10 @@ public class SmoothedUnigramLanguageModel implements LanguageModel {
 	return sum;
     }
     
+    public double getTotal() {
+	return total;
+    }
+    
     /**
      * Returns a random word sampled according to the model.  A simple
      * "roulette-wheel" approach is used: first we generate a sample uniform
@@ -183,7 +187,7 @@ public class SmoothedUnigramLanguageModel implements LanguageModel {
 	double sample = Math.random();
 	double sum = 0.0;
 	for (String word : wordCounter.keySet()) {
-	    sum += wordCounter.getCount(word) / total;
+	    sum += (wordCounter.getCount(word) / total);
 	    if (sum > sample) {
 		return word;
 	    }

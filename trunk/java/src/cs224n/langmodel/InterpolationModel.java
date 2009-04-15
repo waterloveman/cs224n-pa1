@@ -1,6 +1,6 @@
 package cs224n.langmodel;
 
-import cs224n.langmodel.EmpiricalUnigramLanguageModel;
+import cs224n.langmodel.SmoothedUnigramLanguageModel;
 import cs224n.langmodel.BigramModel;
 import cs224n.langmodel.TrigramModel;
 
@@ -19,11 +19,11 @@ public class InterpolationModel implements LanguageModel {
     private static final String STOP = "</S>";
     
 
-    private EmpiricalUnigramLanguageModel Unigram;
+    private SmoothedUnigramLanguageModel Unigram;
     private BigramModel Bigram;
     private TrigramModel Trigram;
 
-    private double[] Weights = {0.6, 0.3, 0.1};
+    private double[] Weights = {0.3, 0.4, 0.3};
 
 
     // -----------------------------------------------------------------------
@@ -32,7 +32,7 @@ public class InterpolationModel implements LanguageModel {
      * Constructs a new, empty unigram language model.
      */
     public InterpolationModel() {
-	Unigram = new EmpiricalUnigramLanguageModel();
+	Unigram = new SmoothedUnigramLanguageModel();
 	Bigram = new BigramModel();
 	Trigram = new TrigramModel();
     }
@@ -45,7 +45,7 @@ public class InterpolationModel implements LanguageModel {
      */
     public InterpolationModel(Collection<List<String>> sentences) {
 	this();
-	Unigram = new EmpiricalUnigramLanguageModel(sentences);
+	Unigram = new SmoothedUnigramLanguageModel(sentences);
 	Bigram = new BigramModel(sentences);
 	Trigram = new TrigramModel(sentences); 
     }
@@ -77,18 +77,6 @@ public class InterpolationModel implements LanguageModel {
 	return (Weights[0] * Trigram.getWordProbability(sentence, index) +
 		Weights[1] * Bigram.getWordProbability(sentence, index) +
 		Weights[2] * Unigram.getWordProbability(sentence, index));
-	/*
-	  String wordN2 = sentence.get(index - 2).intern();
-	  String wordN1 = sentence.get(index - 1).intern();
-	String word = sentence.get(index).intern();
-	if(Trigram.getCount(wordN2, wordN1, word) > 0){
-	    return Trigram.getWordProbability(sentence, index);
-	} else if(Bigram.getCount(wordN1, word) > 0) {
-	    return Bigram.getWordProbability(sentence, index);
-	} else {
-	    return Unigram.getWordProbability(sentence,index);
-	}
-	*/
     }
     
     /**
@@ -122,7 +110,34 @@ public class InterpolationModel implements LanguageModel {
      * mass until we reach our sample.
      */
     public String generateWord(String prewordTwo, String prewordOne) {
-	return Trigram.generateWord(prewordTwo, prewordOne);
+	double sample = Math.random();
+	if(sample < Weights[0]){
+	    return Trigram.generateWord(prewordTwo, prewordOne);
+	} else if(sample < Weights[0] + Weights[1]){
+	    return Bigram.generateWord(prewordOne);
+	} else {
+	    return Unigram.generateWord();
+	}
+	
+
+
+
+	/*	double sum = 0.0;
+	String result = Trigram.generateWord(Weights[0], sample);
+	if(!reults.equals("*UNKNOWN*")) return result;
+	sample -= Weights[0];
+	result = Bigram.generateWord(Weights[1], sample);
+	if(!reults.equals("*UNKNOWN*")) return result;
+	return Unigram.generateWord(Weights[2], 
+	*/
+	/*for(String word : Trigram.wordCounter.keySet()) {
+	    sum += Weights[0] * Trigram.wordCounter.getCount(word) / Trigram.getTotal();
+	    if(sum > sample) {
+		return word;
+	    }
+	}
+	*/
+	
     }
     
     /**
