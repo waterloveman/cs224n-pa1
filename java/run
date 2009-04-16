@@ -4,7 +4,7 @@
 
 java -mx2000m -cp classes \
   cs224n.assignments.LanguageModelTester \
-  -model cs224n.langmodel.BigramModel \
+  -model cs224n.langmodel.TrigramModel \
   -data      /afs/ir/class/cs224n/pa1/data \
   -train     europarl-train.sent.txt \
   -test      europarl-test.sent.txt \
