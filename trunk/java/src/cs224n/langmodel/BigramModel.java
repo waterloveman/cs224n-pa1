@@ -147,12 +147,11 @@ public class BigramModel implements LanguageModel {
 	int size = wordCounter.keySet().size();
 	Object[] Words = (wordCounter.keySet()).toArray();
 
-	for(int i = 0; i < check; i++){
+	for(int i = 0; iT < check; i++){
 	    int num = (int)(Math.random() * size);
 	    String preword = (String)Words[num];
 	    for(String word : uniModel.wordCounter.keySet())
 		sum += getWordProbability(preword, word);
-	    }
 	    sum += getWordProbability(preword, "*UNK*");
 	}	
 	return sum/check;
