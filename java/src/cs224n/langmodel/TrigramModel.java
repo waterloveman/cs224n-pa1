@@ -36,7 +36,6 @@ public class TrigramModel implements LanguageModel {
 	totalMap = new Counter<String>();
 	biModel = new BigramModel();
 	preWordAlpha = new HashMap<String, Double>();
-	total = Double.NaN;
     }
     
     /**
