@@ -31,7 +31,6 @@ public class BigramModel implements LanguageModel {
 	wordCounter = new CounterMap<String, String>();
 	totalMap = new Counter<String>();
 	preWordAlpha = new HashMap<String, Double>();
-	total = Double.NaN;
     }
     
     /**
