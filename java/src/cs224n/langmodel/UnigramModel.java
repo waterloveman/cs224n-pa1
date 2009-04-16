@@ -14,11 +14,11 @@ import java.util.List;
  *
  * @author Dan Klein
  */
-public class SmoothedUnigramLanguageModel implements LanguageModel {
+public class UnigramModel implements LanguageModel {
     
     private static final String STOP = "</S>";
     
-    private Counter<String> wordCounter;
+    public Counter<String> wordCounter;
     //private Pair<Double, Double> regFunc;
     private double discount = .75;
     private double alpha;
@@ -30,7 +30,7 @@ public class SmoothedUnigramLanguageModel implements LanguageModel {
     /**
      * Constructs a new, empty unigram language model.
      */
-    public SmoothedUnigramLanguageModel() {
+    public UnigramModel() {
 	wordCounter = new Counter<String>();
 	total = Double.NaN;
     }
@@ -41,7 +41,7 @@ public class SmoothedUnigramLanguageModel implements LanguageModel {
      * frequencies of all words (including the stop token) over the whole
      * collection of sentences are compiled.
      */
-    public SmoothedUnigramLanguageModel(Collection<List<String>> sentences) {
+    public UnigramModel(Collection<List<String>> sentences) {
 	this();
 	train(sentences);
     }
@@ -74,7 +74,7 @@ public class SmoothedUnigramLanguageModel implements LanguageModel {
 	alpha = 1.0 - sum;
     }
     
-    private double getWordProbability(String word) {
+    public double getWordProbability(String word) {
 	int count = (int)wordCounter.getCount(word);
 	if(count == 0){
 	    return alpha;
@@ -125,7 +125,7 @@ public class SmoothedUnigramLanguageModel implements LanguageModel {
 	}
 	// remember to add the UNK. In this EmpiricalUnigramLanguageModel
 	// we assume there is only one UNK, so we add...
-	sum += alpha;
+	sum += getWordProbability("*UNK*");
 	return sum;
     }
     

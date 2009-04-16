@@ -93,6 +93,8 @@ public class LanguageModelTester {
       }
       // If exactly correct
       if( distanceForBestScores == 0 ) {
+	  ///if(showGuesses)
+	  //System.out.println("correct!");
 	absoluteCorrect++;
       }
       totalDistance += distanceForBestScores / numWithBestScores;

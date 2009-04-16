@@ -2,13 +2,13 @@
 
 # You may find this shell script helpful.
 
-java -mx300m -cp classes \
+java -mx2000m -cp classes \
   cs224n.assignments.LanguageModelTester \
-  -model cs224n.langmodel.SimpleBackoffModel \
+  -model cs224n.langmodel.BigramModel \
   -data      /afs/ir/class/cs224n/pa1/data \
   -train     europarl-train.sent.txt \
   -test      europarl-test.sent.txt \
-  -showguesses       false \
+  -showguesses       true \
   -jumble       true \
   -baselines true \
   -generate  true \

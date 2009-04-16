@@ -5,6 +5,7 @@ import cs224n.util.CounterMap;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.HashMap;
 
 /**
  * A language model -- uses bigram counts
@@ -16,7 +17,11 @@ public class TrigramModel implements LanguageModel {
     
     private CounterMap<String, String> wordCounter;
     private double total;
+    private BigramModel biModel;
+    private HashMap<String, Double> preWordAlpha;
+    private double discount = .75;
     
+    private String SPLIT = "==";
     
     // -----------------------------------------------------------------------
     
@@ -25,6 +30,8 @@ public class TrigramModel implements LanguageModel {
      */
     public TrigramModel() {
 	wordCounter = new CounterMap<String, String>();
+	biModel = new BigramModel();
+	preWordAlpha = new HashMap<String, Double>();
 	total = Double.NaN;
     }
     
@@ -49,7 +56,7 @@ public class TrigramModel implements LanguageModel {
     
 
     private String concatStrings(String s1, String s2){
-	return s1 + "=*=" + s2;
+	return s1 + SPLIT + s2;
     }
     
     // -----------------------------------------------------------------------
@@ -61,6 +68,8 @@ public class TrigramModel implements LanguageModel {
      * collection of sentences are compiled.
      */
     public void train(Collection<List<String>> sentences) {
+	biModel.train(sentences);
+
 	wordCounter = new CounterMap<String, String>();
 	for (List<String> sentence : sentences) {
 	    List<String> stoppedSentence = new ArrayList<String>(sentence);
@@ -70,13 +79,33 @@ public class TrigramModel implements LanguageModel {
 	    for(int i = 2; i < stoppedSentence.size(); i++){
 		String key = concatStrings(stoppedSentence.get(i-2),
 					   stoppedSentence.get(i-1)).intern();
-		//System.out.println("Key: "+key);
+		if(stoppedSentence.get(i-1).length() == 0)
+		    System.out.println(stoppedSentence.get(i-2));
+		//System.out.println(key);
 		wordCounter.incrementCount(key,
 					   stoppedSentence.get(i).intern(),
 					   1.0);
 	    }
 	}
 	total = wordCounter.totalCount();
+	
+	for(String firstWord : wordCounter.keySet()){
+	    //System.out.println(firstWord + " " + firstWord.split(SPLIT).length);
+	    String[] words = firstWord.split(SPLIT);
+	    String word2 = words.length == 1 ? "" : words[1]; 
+	    String word1 = words[0];
+
+	    Counter<String> thirdWords = wordCounter.getCounter(firstWord);
+	    int firstTotal = (int)thirdWords.totalCount();
+	    double sum = 0.0, denom = 1.0;
+	    for (String thirdWord : thirdWords.keySet()){
+		sum += (thirdWords.getCount(thirdWord) - discount) / firstTotal;
+		denom -= biModel.getWordProbability(word2, thirdWord);
+	    }
+	    preWordAlpha.put(firstWord, (1-sum) / denom);
+	    //System.out.println(firstWord + " " + sum + " " + denom + " " + (1-sum) / denom);
+	}
+	
     }
     
     
@@ -88,9 +117,12 @@ public class TrigramModel implements LanguageModel {
 	double total = counter.totalCount();
 	if (count == 0) {                   // unknown word
 	    // System.out.println("UNKNOWN WORD: " + sentence.get(index));
-	    return 1.0 / (total + 1.0);
+	    //return 1.0 / (total + 1.0);
+	    return (preWordAlpha.containsKey(preword) ? preWordAlpha.get(preword) : 1) * 
+		biModel.getWordProbability(preword.split(SPLIT)[1], word);
+	
 	}
-	return count / (total + 1);
+	return (count - discount) / total;
     }
     
     /**
@@ -136,10 +168,10 @@ public class TrigramModel implements LanguageModel {
 	    int num = (int)(Math.random() * size);
 	    String preword = ((String)Words[num]).intern();
 	    Counter<String> prewordCounter = wordCounter.getCounter(preword);
-	    for(String word : prewordCounter.keySet()){	    
+	    for(String word : biModel.uniModel.wordCounter.keySet()){	    
 		sum += getWordProbability(preword, word);
 	    }
-	    sum += 1.0 / (prewordCounter.totalCount() + 1.0);
+	    sum += getWordProbability(preword, "*UNK*");
 	}
 
 
@@ -156,7 +188,7 @@ public class TrigramModel implements LanguageModel {
 	*/
 	// remember to add the UNK. In this EmpiricalUnigramLanguageModel
 	// we assume there is only one UNK, so we add...
-	sum += 1.0 / (total + 1.0);
+	//sum += 1.0 / (total + 1.0);
 	
 	return sum/check;
     }    
