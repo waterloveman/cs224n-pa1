@@ -5,8 +5,12 @@ import cs224n.util.CounterMap;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+<<<<<<< .mine
+import java.util.Set;
+=======
 import java.util.HashMap;
 
+>>>>>>> .r7
 /**
  * A language model -- uses bigram counts
  */
@@ -14,9 +18,11 @@ public class TrigramModel implements LanguageModel {
     
     private static final String START= "<S>";
     private static final String STOP = "</S>";
+    private static final String SEP = "=*=";
     
     private CounterMap<String, String> wordCounter;
-    private double total;
+    private Counter<String> totalMap;
+
     private BigramModel biModel;
     private HashMap<String, Double> preWordAlpha;
     private double discount = .75;
@@ -30,9 +36,13 @@ public class TrigramModel implements LanguageModel {
      */
     public TrigramModel() {
 	wordCounter = new CounterMap<String, String>();
+<<<<<<< .mine
+	totalMap = new Counter<String>();
+=======
 	biModel = new BigramModel();
 	preWordAlpha = new HashMap<String, Double>();
 	total = Double.NaN;
+>>>>>>> .r7
     }
     
     /**
@@ -54,9 +64,29 @@ public class TrigramModel implements LanguageModel {
 	return count;
     }
     
+    public String[] getInitPhrase()
+    {
+	double pos = Math.random();
+	Set<String> keys = wordCounter.keySet();
+	String key = ((String)(keys.toArray())[(int)(keys.size() *
+						     pos)]).intern();
+	String[] ps = new String[2];
+	ps[0] = key.substring(0, key.indexOf(SEP));
+	ps[1] = key.substring(key.indexOf(SEP)+ SEP.length());
+	return ps;
+    }
+    
+    public Counter<String> getCounter(String s1, String s2){
+	return wordCounter.getCounter(concatStrings(s1,s2));
+    }
 
+<<<<<<< .mine
+    public String concatStrings(String s1, String s2){
+	return s1 + SEP + s2;
+=======
     private String concatStrings(String s1, String s2){
 	return s1 + SPLIT + s2;
+>>>>>>> .r7
     }
     
     // -----------------------------------------------------------------------
@@ -87,7 +117,10 @@ public class TrigramModel implements LanguageModel {
 					   1.0);
 	    }
 	}
-	total = wordCounter.totalCount();
+
+	for(String word : wordCounter.keySet()){
+	    totalMap.setCount(word, wordCounter.getCounter(word).totalCount());
+	}
 	
 	for(String firstWord : wordCounter.keySet()){
 	    //System.out.println(firstWord + " " + firstWord.split(SPLIT).length);
@@ -114,7 +147,7 @@ public class TrigramModel implements LanguageModel {
     private double getWordProbability(String preword, String word) {
 	Counter<String> counter = wordCounter.getCounter(preword);
 	double count = counter.getCount(word);
-	double total = counter.totalCount();
+	double total = totalMap.getCount(preword);
 	if (count == 0) {                   // unknown word
 	    // System.out.println("UNKNOWN WORD: " + sentence.get(index));
 	    //return 1.0 / (total + 1.0);
@@ -188,7 +221,10 @@ public class TrigramModel implements LanguageModel {
 	*/
 	// remember to add the UNK. In this EmpiricalUnigramLanguageModel
 	// we assume there is only one UNK, so we add...
+<<<<<<< .mine
+=======
 	//sum += 1.0 / (total + 1.0);
+>>>>>>> .r7
 	
 	return sum/check;
     }    
