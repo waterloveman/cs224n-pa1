@@ -15,7 +15,7 @@ public class TrigramModel implements LanguageModel {
     
     private static final String START= "<S>";
     private static final String STOP = "</S>";
-    private static final String SEP = "=*=";
+    //private static final String SEP = "=*=";
     
     private CounterMap<String, String> wordCounter;
     private Counter<String> totalMap;
@@ -57,7 +57,7 @@ public class TrigramModel implements LanguageModel {
 	return count;
     }
     
-    public String[] getInitPhrase()
+    /*public String[] getInitPhrase()
     {
 	double pos = Math.random();
 	Set<String> keys = wordCounter.keySet();
@@ -67,7 +67,7 @@ public class TrigramModel implements LanguageModel {
 	ps[0] = key.substring(0, key.indexOf(SEP));
 	ps[1] = key.substring(key.indexOf(SEP)+ SEP.length());
 	return ps;
-    }
+	}*/
     
     public Counter<String> getCounter(String s1, String s2){
 	return wordCounter.getCounter(concatStrings(s1,s2));
@@ -75,7 +75,7 @@ public class TrigramModel implements LanguageModel {
 
 
     public String concatStrings(String s1, String s2){
-	return s1 + SEP + s2;
+	return s1 + SPLIT + s2;
     }
     
     // -----------------------------------------------------------------------
@@ -98,8 +98,6 @@ public class TrigramModel implements LanguageModel {
 	    for(int i = 2; i < stoppedSentence.size(); i++){
 		String key = concatStrings(stoppedSentence.get(i-2),
 					   stoppedSentence.get(i-1)).intern();
-		if(stoppedSentence.get(i-1).length() == 0)
-		    System.out.println(stoppedSentence.get(i-2));
 		//System.out.println(key);
 		wordCounter.incrementCount(key,
 					   stoppedSentence.get(i).intern(),
