@@ -5,12 +5,9 @@ import cs224n.util.CounterMap;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-<<<<<<< .mine
 import java.util.Map;
-=======
 import java.util.HashMap;
 
->>>>>>> .r7
 /**
  * A language model -- uses bigram counts
  */
@@ -32,12 +29,9 @@ public class BigramModel implements LanguageModel {
     public BigramModel() {
 	uniModel = new UnigramModel();
 	wordCounter = new CounterMap<String, String>();
-<<<<<<< .mine
 	totalMap = new Counter<String>();
-=======
 	preWordAlpha = new HashMap<String, Double>();
 	total = Double.NaN;
->>>>>>> .r7
     }
     
     /**
@@ -158,29 +152,9 @@ public class BigramModel implements LanguageModel {
 	    String preword = (String)Words[num];
 	    for(String word : uniModel.wordCounter.keySet())
 		sum += getWordProbability(preword, word);
-<<<<<<< .mine
 	    }
-	    sum += 1.0 / (prewordCounter.totalCount() + 1.0);
-	}
-
-
-	// since this is a bigram model, 
-	// the event space is everything in the vocabulary (including START)
-	// and a UNK token
-	
-	// this loop goes through the vocabulary (which includes START)
-	//sum += wordCounter.totalCount();
-	/*
-	  for (String word : wordCounter.keySet()) {
-	    sum += getWordProbability(word);
-	}
-	*/
-	// remember to add the UNK. In this EmpiricalUnigramLanguageModel
-	// we assume there is only one UNK, so we add...	
-=======
 	    sum += getWordProbability(preword, "*UNK*");
 	}	
->>>>>>> .r7
 	return sum/check;
     }    
     /**
