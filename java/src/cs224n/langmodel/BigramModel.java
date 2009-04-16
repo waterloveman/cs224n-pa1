@@ -20,7 +20,7 @@ public class BigramModel implements LanguageModel {
     private Counter<String> totalMap;
     public UnigramModel uniModel;
     private HashMap<String, Double> preWordAlpha;
-    
+    private double total;
     // -----------------------------------------------------------------------
     
     /**
@@ -31,6 +31,10 @@ public class BigramModel implements LanguageModel {
 	wordCounter = new CounterMap<String, String>();
 	totalMap = new Counter<String>();
 	preWordAlpha = new HashMap<String, Double>();
+<<<<<<< .mine
+	total = Double.NaN;
+=======
+>>>>>>> .r11
     }
     
     /**

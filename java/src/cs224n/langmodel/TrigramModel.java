@@ -5,12 +5,9 @@ import cs224n.util.CounterMap;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-<<<<<<< .mine
 import java.util.Set;
-=======
 import java.util.HashMap;
 
->>>>>>> .r7
 /**
  * A language model -- uses bigram counts
  */
@@ -36,13 +33,10 @@ public class TrigramModel implements LanguageModel {
      */
     public TrigramModel() {
 	wordCounter = new CounterMap<String, String>();
-<<<<<<< .mine
 	totalMap = new Counter<String>();
-=======
 	biModel = new BigramModel();
 	preWordAlpha = new HashMap<String, Double>();
 	total = Double.NaN;
->>>>>>> .r7
     }
     
     /**
@@ -80,13 +74,9 @@ public class TrigramModel implements LanguageModel {
 	return wordCounter.getCounter(concatStrings(s1,s2));
     }
 
-<<<<<<< .mine
+
     public String concatStrings(String s1, String s2){
 	return s1 + SEP + s2;
-=======
-    private String concatStrings(String s1, String s2){
-	return s1 + SPLIT + s2;
->>>>>>> .r7
     }
     
     // -----------------------------------------------------------------------
@@ -221,11 +211,7 @@ public class TrigramModel implements LanguageModel {
 	*/
 	// remember to add the UNK. In this EmpiricalUnigramLanguageModel
 	// we assume there is only one UNK, so we add...
-<<<<<<< .mine
-=======
 	//sum += 1.0 / (total + 1.0);
->>>>>>> .r7
-	
 	return sum/check;
     }    
     /**
@@ -266,5 +252,3 @@ public class TrigramModel implements LanguageModel {
     }
     
 }
-
-
