@@ -5,8 +5,12 @@ import cs224n.util.CounterMap;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+<<<<<<< .mine
+import java.util.Map;
+=======
 import java.util.HashMap;
 
+>>>>>>> .r7
 /**
  * A language model -- uses bigram counts
  */
@@ -16,11 +20,9 @@ public class BigramModel implements LanguageModel {
     private static final String STOP = "</S>";
     
     private CounterMap<String, String> wordCounter;
-    private double total;
-    private double discount = .75;
+    private Counter<String> totalMap;
     public UnigramModel uniModel;
     private HashMap<String, Double> preWordAlpha;
-    
     
     // -----------------------------------------------------------------------
     
@@ -30,8 +32,12 @@ public class BigramModel implements LanguageModel {
     public BigramModel() {
 	uniModel = new UnigramModel();
 	wordCounter = new CounterMap<String, String>();
+<<<<<<< .mine
+	totalMap = new Counter<String>();
+=======
 	preWordAlpha = new HashMap<String, Double>();
 	total = Double.NaN;
+>>>>>>> .r7
     }
     
     /**
@@ -54,7 +60,6 @@ public class BigramModel implements LanguageModel {
      * frequencies of all words (including the stop token) over the whole
      * collection of sentences are compiled.
      */
-
     public void train(Collection<List<String>> sentences) {
 	uniModel.train(sentences);
 
@@ -69,7 +74,9 @@ public class BigramModel implements LanguageModel {
 					   1.0);
 	    }
 	}
-	total = wordCounter.totalCount();
+	for(String word : wordCounter.keySet()){
+	    totalMap.setCount(word, wordCounter.getCounter(word).totalCount());
+	}
 	
 	for(String firstWord : wordCounter.keySet()){
 	    Counter<String> secondWords = wordCounter.getCounter(firstWord);
@@ -88,6 +95,11 @@ public class BigramModel implements LanguageModel {
     
     
     // -----------------------------------------------------------------------
+  
+    public Counter<String> getCounter(String preword){
+	return wordCounter.getCounter(preword);
+    }
+
     public double getCount(String preword, String word) {
 	Counter<String> counter = wordCounter.getCounter(preword);
         return counter.getCount(word);
@@ -97,7 +109,7 @@ public class BigramModel implements LanguageModel {
     public double getWordProbability(String preword, String word) {
 	Counter<String> counter = wordCounter.getCounter(preword);
 	double count = counter.getCount(word);
-	double total = counter.totalCount();
+	double total = totalMap.getCount(preword);
 	if (count == 0) {                   // unknown word
 	    return (preWordAlpha.containsKey(preword) ? preWordAlpha.get(preword) : 1) * uniModel.getWordProbability(word);// System.out.println("UNKNOWN WORD: " + sentence.get(index));
 	}
@@ -146,8 +158,29 @@ public class BigramModel implements LanguageModel {
 	    String preword = (String)Words[num];
 	    for(String word : uniModel.wordCounter.keySet())
 		sum += getWordProbability(preword, word);
+<<<<<<< .mine
+	    }
+	    sum += 1.0 / (prewordCounter.totalCount() + 1.0);
+	}
+
+
+	// since this is a bigram model, 
+	// the event space is everything in the vocabulary (including START)
+	// and a UNK token
+	
+	// this loop goes through the vocabulary (which includes START)
+	//sum += wordCounter.totalCount();
+	/*
+	  for (String word : wordCounter.keySet()) {
+	    sum += getWordProbability(word);
+	}
+	*/
+	// remember to add the UNK. In this EmpiricalUnigramLanguageModel
+	// we assume there is only one UNK, so we add...	
+=======
 	    sum += getWordProbability(preword, "*UNK*");
 	}	
+>>>>>>> .r7
 	return sum/check;
     }    
     /**
