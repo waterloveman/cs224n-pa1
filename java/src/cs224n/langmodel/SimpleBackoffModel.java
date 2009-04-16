@@ -18,6 +18,7 @@ public class SimpleBackoffModel implements LanguageModel {
     private static final String START= "<S>";
     private static final String STOP = "</S>";
     
+    private double[] coefs = {.8, 0.15, 0.05}; 
 
     private SmoothedUnigramLanguageModel Unigram;
     private BigramModel Bigram;
@@ -59,6 +60,17 @@ public class SimpleBackoffModel implements LanguageModel {
 	Unigram.train(sentences);
 	Bigram.train(sentences);
 	Trigram.train(sentences);
+	
+	/*
+	double presum = 0.0;
+	for(
+
+
+
+	double beta = 1 - 
+	coefs[0] = 
+	*/
+	
     }
     
     
@@ -74,11 +86,11 @@ public class SimpleBackoffModel implements LanguageModel {
 	String wordN1 = sentence.get(index - 1).intern();
 	String word = sentence.get(index).intern();
 	if(Trigram.getCount(wordN2, wordN1, word) > 0){
-	    return Trigram.getWordProbability(sentence, index);
+	    return coefs[0] * Trigram.getWordProbability(sentence, index);
 	} else if(Bigram.getCount(wordN1, word) > 0) {
-	    return Bigram.getWordProbability(sentence, index);
+	    return coefs[1] * Bigram.getWordProbability(sentence, index);
 	} else {
-	    return Unigram.getWordProbability(sentence,index);
+	    return coefs[2] * Unigram.getWordProbability(sentence,index);
 	}
     }
     
