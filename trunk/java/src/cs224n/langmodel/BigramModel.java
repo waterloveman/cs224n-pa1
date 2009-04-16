@@ -20,7 +20,7 @@ public class BigramModel implements LanguageModel {
     private Counter<String> totalMap;
     public UnigramModel uniModel;
     private HashMap<String, Double> preWordAlpha;
-    private double total;
+    private double discount = .75;
     // -----------------------------------------------------------------------
     
     /**
@@ -31,10 +31,6 @@ public class BigramModel implements LanguageModel {
 	wordCounter = new CounterMap<String, String>();
 	totalMap = new Counter<String>();
 	preWordAlpha = new HashMap<String, Double>();
-<<<<<<< .mine
-	total = Double.NaN;
-=======
->>>>>>> .r11
     }
     
     /**
@@ -150,7 +146,7 @@ public class BigramModel implements LanguageModel {
 	int size = wordCounter.keySet().size();
 	Object[] Words = (wordCounter.keySet()).toArray();
 
-	for(int i = 0; iT < check; i++){
+	for(int i = 0; i < check; i++){
 	    int num = (int)(Math.random() * size);
 	    String preword = (String)Words[num];
 	    for(String word : uniModel.wordCounter.keySet())
