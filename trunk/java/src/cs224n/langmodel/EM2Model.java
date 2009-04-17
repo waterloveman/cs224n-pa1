@@ -29,6 +29,8 @@ public class EM2Model implements LanguageModel {
 
     private double[] Lambdas = {0.7, 0.2, 0.1};
 
+    private String wordPrint = null;
+
     // -----------------------------------------------------------------------
     
     /**
@@ -69,13 +71,13 @@ public class EM2Model implements LanguageModel {
     public void train(Collection<List<String>> sentences) {
 		
 	int size = sentences.size();
-	int training = (int)(size * 0.9);
+	int training = (int)(size * 0.8);
 	int heldOut = size - training;
 	Collection<List<String> > trainingSentences = new ArrayList<List<String>>();
 	Collection<List<String> > heldOutSentences = new ArrayList<List<String>>();
 	int i = 0;
 	for(Iterator it=sentences.iterator(); it.hasNext(); ){
-	    List<String>  element = (List<String>)it.next();
+	    List<String> element = (List<String>)it.next();
 	    if(i <= training){
 		trainingSentences.add(element);
 	    } else {
@@ -96,24 +98,38 @@ public class EM2Model implements LanguageModel {
 	
 	double[] coefTots = {0.0, 0.0, 0.0};
 	Set<String> keys = triC.keySet();
+	System.out.println("");
 	System.out.println("Total Trigrams: " + triC.keySet().size());
-	i = 0;
+	int countThrough = 0;
+	System.out.print("Progress");
 	for(String key : keys)
 	{
-	    System.out.println("Training: " + (++i));
 	    String[] wordParts = Trigram.split(key);
 	    if(wordParts.length != 2) continue;
 	    double[] tempC = getCoefs(wordParts[0], wordParts[1]);
+	    if(tempC == null) continue;
+	    countThrough++;
+	    if(countThrough % 10000 == 0){
+		System.out.print(".");
+	    }
 	    coefTots[0] += tempC[0];
 	    coefTots[1] += tempC[1];
 	    coefTots[2] += tempC[2];
+	    break;
 	}
 
-	Lambdas[0] = coefTots[0] / keys.size();
-	Lambdas[1] = coefTots[1] / keys.size();
-	Lambdas[2] = coefTots[2] / keys.size();
+	double tot = coefTots[0] + coefTots[1] + coefTots[2];
+
+	Lambdas[0] = coefTots[0] / tot;
+	Lambdas[1] = coefTots[1] / tot;
+	Lambdas[2] = coefTots[2] / tot;
 	
-	System.out.println("=====LAMBDAS=====");
+	//Scale
+	
+	
+	
+	
+	System.out.println("\n=====LAMBDAS=====");
 	System.out.println("Lambda 1: " + Lambdas[0]);
 	System.out.println("Lambda 2: " + Lambdas[1]);
 	System.out.println("Lambda 3: " + Lambdas[2]);
@@ -124,20 +140,34 @@ public class EM2Model implements LanguageModel {
 	double[] coefs = {0.7, 0.2, 0.1};
 	Counter<String> trainCount = Trigram.getCounter(wordN2, wordN1);
 	double totalCount = trainCount.totalCount();
+	int runTimes = 1;
 	Counter<String> heldoutCount = TrigramHeldout.getCounter(wordN2,
 								 wordN1);
-	heldoutCount.incrementCount(Trigram.concatStrings(wordN2,
+	/*
+	  heldoutCount.incrementCount(Trigram.concatStrings(wordN2,
 							  wordN1),
 				    1.0);
-	for(int i = 0; i < 10; i++) {
+	*/
+	boolean print = true;
+	if(heldoutCount.keySet().size() == 0){
+	    runTimes = 1;
+	    heldoutCount = Bigram.getCounter(wordN1);
+	}
+	
+	for(int i = 0; i < runTimes; i++) {
 	    //Trigram Expected
 	    double TriExpected = 0.0;
 	    double BiExpected = 0.0;
 	    double UniExpected = 0.0;
+
+	    double liklihood = 0.0;
 	    for(String word : heldoutCount.keySet()){
 		double TriP = coefs[0]*trainCount.getCount(word)/totalCount;
 		double BiP =  coefs[1]*Bigram.getWordProbability(wordN1, word);
 		double UniP = coefs[2]*Unigram.getWordProbability(word);
+
+		liklihood += Math.pow(TriP + BiP + UniP,heldoutCount.getCount(word));
+
 		
 		double TriYP = TriP / (TriP + BiP + UniP);
 		double BiYP = BiP / (TriP + BiP + UniP);
@@ -146,31 +176,40 @@ public class EM2Model implements LanguageModel {
 		TriExpected += heldoutCount.getCount(word) * TriYP;
 		BiExpected += heldoutCount.getCount(word) * BiYP;
 		UniExpected += heldoutCount.getCount(word) * UniYP;
+		if(!print) continue;
+		if(wordPrint == null){
+		    if(TriP > 0){
+			wordPrint = word;
+		    }
+		} else if(wordPrint.equals(word)){ 
+		    System.out.println(" =======WORD =========== ");
+		    System.out.println("Word: " + word);
+		    System.out.println("HO Count: " + heldoutCount.getCount(word));
+		    System.out.println("Tri Prob: " + TriP);
+		    System.out.println("Bi  Prob: " + BiP);
+		    System.out.println("Uni Prob: " + UniP);
+		    System.out.println("Prob From Tri: " + TriYP);
+		    System.out.println("Prob From Bi : " + BiYP);
+		    System.out.println("Prob From Uni: " + UniYP);
+		    System.out.println("Exp From Tri: " + heldoutCount.getCount(word) * TriYP);
+		    System.out.println("Exp From Bi : " + heldoutCount.getCount(word) * BiYP);
+		    System.out.println("Exp From Uni: " + heldoutCount.getCount(word) * UniYP);
+		}
 	    }
 	    double TotalExpected = TriExpected + BiExpected + UniExpected;
-	    /*
-	      System.out.println("Actual: " + heldoutCount.totalCount() +
-			       "   Got: " + TotalExpected);
-	    /*
-	      if(TotalExpected != heldoutCount.totalCount()){
-		System.out.println("InValid Reestimation");
-	    }
-	    */
 	    if(TotalExpected > 0){
 		coefs[0] = TriExpected / TotalExpected;
 		coefs[1] = BiExpected / TotalExpected;
 		coefs[2] = UniExpected / TotalExpected;
 	    }
+	    if(print || true){
+		System.out.println(" ======ITER " + i + "=====" );
+		System.out.println("Liklihood :" + liklihood);
+      		System.out.println("Lambda 1: " + coefs[0]);
+		System.out.println("Lambda 2: " + coefs[1]);
+		System.out.println("Lambda 3: " + coefs[2]);
+	    }
 	}
-	/*
-	  
-	double P1 = coefs[0] * Trigram.getWordProbability(sentence, index);
-	double P2 = coefs[1] * Bigram.getWordProbability(sentence, index);
-	double P3 = coefs[2] * Unigram.getWordProbability(sentence,
-	index);
-	//System.out.println("PROBS: " + P1 + "," + P2 + "," + P3);
-	return P1 + P2 + P3;
-	*/
 	return coefs;
     }
 
