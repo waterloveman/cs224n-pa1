@@ -103,10 +103,16 @@ public class BigramModel implements LanguageModel {
 	Counter<String> counter = wordCounter.getCounter(preword);
 	double count = counter.getCount(word);
 	double total = totalMap.getCount(preword);
+	double ret = 0;
 	if (count == 0) {                   // unknown word
-	    return (preWordAlpha.containsKey(preword) ? preWordAlpha.get(preword) : 1) * uniModel.getWordProbability(word);// System.out.println("UNKNOWN WORD: " + sentence.get(index));
+	    ret = (preWordAlpha.containsKey(preword) ? preWordAlpha.get(preword) : 1) * uniModel.getWordProbability(word);// System.out.println("UNKNOWN WORD: " + sentence.get(index));
+	    //	    System.out.println("in here: " + ret);
 	}
-	return (count - discount) / total;
+	else
+	    ret = (count - discount) / total;
+	//	if(ret < 0 && count == 0)
+	//  System.out.println(ret + " " + count + " " + discount + " " + total + " " + preWordAlpha.get(preword) + " " + preword + " " + word + " " + uniModel.getWordProbability(word));
+	return ret;
     }
     
     /**
@@ -162,11 +168,12 @@ public class BigramModel implements LanguageModel {
      * mass until we reach our sample.
      */
     public String generateWord(String preword) {
+	//System.out.println(preword);
 	double sample = Math.random();
 	double sum = 0.0;
 	Counter<String> subList = wordCounter.getCounter(preword);
-	for (String word : subList.keySet()) {
-	    sum += subList.getCount(word) / subList.totalCount();
+	for (String word : uniModel.wordCounter.keySet()) {
+	    sum += getWordProbability(preword, word);//subList.getCount(word) / subList.totalCount();
 	    if (sum > sample) {
 		return word;
 	    }

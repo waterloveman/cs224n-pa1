@@ -231,8 +231,8 @@ public class TrigramModel implements LanguageModel {
 	double sample = Math.random();
 	double sum = 0.0;
 	Counter<String> subList = wordCounter.getCounter(preword);
-	for (String word : subList.keySet()) {
-	    sum += subList.getCount(word) / subList.totalCount();
+	for (String word : biModel.uniModel.wordCounter.keySet()) {
+	    sum += getWordProbability(preword, word);//subList.getCount(word) / subList.totalCount();
 	    if (sum > sample) {
 		return word;
 	    }
