@@ -139,7 +139,7 @@ public class UnigramModel implements LanguageModel {
 	double sample = Math.random();
 	double sum = 0.0;
 	for (String word : wordCounter.keySet()) {
-	    sum += wordCounter.getCount(word) / total;
+	    sum += getWordProbability(word);
 	    if (sum > sample) {
 		return word;
 	    }

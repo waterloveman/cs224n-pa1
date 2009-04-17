@@ -60,7 +60,7 @@ public class SimpleBackoffModel implements LanguageModel {
 	Unigram.train(sentences);
 	Bigram.train(sentences);
 	Trigram.train(sentences);
-	double[] coefsTemp = {0.0,0.0,0.0};
+	/*double[] coefsTemp = {0.0,0.0,0.0};
 	double bestP = 0.0;
 	for(double i = 0.00; i <= 1.0; i+=0.1){
 	    for(double j = 0.0; i <= 1.0; j+= 0.1){
@@ -88,7 +88,7 @@ public class SimpleBackoffModel implements LanguageModel {
 	coefs[1] = coefsTemp[1];
 	coefs[2] = coefsTemp[2];
 	System.out.println("\nThe Coefs: " + coefs[0] + " , " + coefs[1] +
-			   " , " + coefs[2]);
+	" , " + coefs[2]);*/
     }
     
     
@@ -104,11 +104,11 @@ public class SimpleBackoffModel implements LanguageModel {
 	String wordN1 = sentence.get(index - 1).intern();
 	String word = sentence.get(index).intern();
 	if(Trigram.getCount(wordN2, wordN1, word) > 0){
-	    return coefs[0] * Trigram.getWordProbability(sentence, index);
+	    Trigram.getWordProbability(sentence, index);
 	} else if(Bigram.getCount(wordN1, word) > 0) {
-	    return coefs[1] * Bigram.getWordProbability(sentence, index);
+	    Bigram.getWordProbability(sentence, index);
 	} else {
-	    return coefs[2] * Unigram.getWordProbability(sentence,index);
+	    Unigram.getWordProbability(sentence,index);
 	}
     }
     
