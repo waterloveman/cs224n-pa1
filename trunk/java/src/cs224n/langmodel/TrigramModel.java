@@ -68,11 +68,20 @@ public class TrigramModel implements LanguageModel {
 	ps[1] = key.substring(key.indexOf(SEP)+ SEP.length());
 	return ps;
 	}*/
+
+    public CounterMap<String, String> getCounterMap()
+    {
+	return wordCounter;
+    }
     
     public Counter<String> getCounter(String s1, String s2){
 	return wordCounter.getCounter(concatStrings(s1,s2));
     }
 
+    public String[] split(String s)
+    {
+	return s.split(SPLIT);
+    }
 
     public String concatStrings(String s1, String s2){
 	return s1 + SPLIT + s2;

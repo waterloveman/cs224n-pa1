@@ -1,6 +1,6 @@
 package cs224n.langmodel;
 
-import cs224n.langmodel.SmoothedUnigramLanguageModel;
+import cs224n.langmodel.UnigramModel;
 import cs224n.langmodel.BigramModel;
 import cs224n.langmodel.TrigramModel;
 
@@ -18,9 +18,9 @@ public class SimpleBackoffModel implements LanguageModel {
     private static final String START= "<S>";
     private static final String STOP = "</S>";
     
-    private double[] coefs = {.8, 0.15, 0.05}; 
+    private double[] coefs = {.78, 0.15, 0.07}; 
 
-    private SmoothedUnigramLanguageModel Unigram;
+    private UnigramModel Unigram;
     private BigramModel Bigram;
     private TrigramModel Trigram;
     
@@ -30,7 +30,7 @@ public class SimpleBackoffModel implements LanguageModel {
      * Constructs a new, empty unigram language model.
      */
     public SimpleBackoffModel() {
-	Unigram = new SmoothedUnigramLanguageModel();
+	Unigram = new UnigramModel();
 	Bigram = new BigramModel();
 	Trigram = new TrigramModel();
     }
@@ -43,7 +43,7 @@ public class SimpleBackoffModel implements LanguageModel {
      */
     public SimpleBackoffModel(Collection<List<String>> sentences) {
 	this();
-	Unigram = new SmoothedUnigramLanguageModel(sentences);
+	Unigram = new UnigramModel(sentences);
 	Bigram = new BigramModel(sentences);
 	Trigram = new TrigramModel(sentences); 
     }
@@ -60,17 +60,35 @@ public class SimpleBackoffModel implements LanguageModel {
 	Unigram.train(sentences);
 	Bigram.train(sentences);
 	Trigram.train(sentences);
-	
-	/*
-	double presum = 0.0;
-	for(
-
-
-
-	double beta = 1 - 
-	coefs[0] = 
-	*/
-	
+	double[] coefsTemp = {0.0,0.0,0.0};
+	double bestP = 0.0;
+	for(double i = 0.00; i <= 1.0; i+=0.1){
+	    for(double j = 0.0; i <= 1.0; j+= 0.1){
+		double k = 1.0 - i - j;
+		if(k > 0){   
+		    double Ptot = 0.0;
+		    coefs[0] = i;
+		    coefs[1] = j;
+		    coefs[2] = k;
+		    for(List<String> sentence : sentences){
+			Ptot += getSentenceProbability(sentence);
+		    }
+		    if(Ptot > bestP){
+			coefsTemp[0] = i;
+			coefsTemp[1] = j;
+			coefsTemp[2] = k;
+			System.out.println("\nThe Coefs: " + coefs[0] +
+					   " , " + coefs[1] + " , " +
+					   coefs[2] + " = " + Ptot);
+		    }
+		}
+	    }
+	}
+	coefs[0] = coefsTemp[0];
+	coefs[1] = coefsTemp[1];
+	coefs[2] = coefsTemp[2];
+	System.out.println("\nThe Coefs: " + coefs[0] + " , " + coefs[1] +
+			   " , " + coefs[2]);
     }
     
     
@@ -115,8 +133,9 @@ public class SimpleBackoffModel implements LanguageModel {
      * checks if the probability distribution properly sums up to 1
      */
     public double checkModel() {
-	return (Unigram.checkModel() + Bigram.checkModel() +
-		Trigram.checkModel())/ 3.0;
+	return (coefs[2] * Unigram.checkModel() + 
+		coefs[1] * Bigram.checkModel() +
+		coefs[0] * Trigram.checkModel());
     }    
     /**
      * Returns a random word sampled according to the model.  A simple
