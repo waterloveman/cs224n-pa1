@@ -1,6 +1,6 @@
 package cs224n.langmodel;
 
-import cs224n.langmodel.SmoothedUnigramLanguageModel;
+import cs224n.langmodel.UnigramModel;
 import cs224n.langmodel.BigramModel;
 import cs224n.langmodel.TrigramModel;
 
@@ -19,11 +19,11 @@ public class InterpolationModel implements LanguageModel {
     private static final String STOP = "</S>";
     
 
-    private SmoothedUnigramLanguageModel Unigram;
+    private UnigramModel Unigram;
     private BigramModel Bigram;
     private TrigramModel Trigram;
 
-    private double[] Weights = {0.3, 0.4, 0.3};
+    private double[] Weights = {0.4, 0.55, 0.05};
 
 
     // -----------------------------------------------------------------------
@@ -32,7 +32,7 @@ public class InterpolationModel implements LanguageModel {
      * Constructs a new, empty unigram language model.
      */
     public InterpolationModel() {
-	Unigram = new SmoothedUnigramLanguageModel();
+	Unigram = new UnigramModel();
 	Bigram = new BigramModel();
 	Trigram = new TrigramModel();
     }
@@ -45,9 +45,10 @@ public class InterpolationModel implements LanguageModel {
      */
     public InterpolationModel(Collection<List<String>> sentences) {
 	this();
-	Unigram = new SmoothedUnigramLanguageModel(sentences);
-	Bigram = new BigramModel(sentences);
-	Trigram = new TrigramModel(sentences); 
+	Unigram = new UnigramModel();
+	Bigram = new BigramModel();
+	Trigram = new TrigramModel();
+	train(sentences);
     }
 	    
     // -----------------------------------------------------------------------
@@ -62,6 +63,32 @@ public class InterpolationModel implements LanguageModel {
 	Unigram.train(sentences);
 	Bigram.train(sentences);
 	Trigram.train(sentences);
+	
+	double[] newW = {0.0, 0.0, 0.0};
+	double PMax = 0.0;
+	for(double i = 0.05; i < 0.95; i+=0.05){
+	    for(double j = 0.05; j < 0.95; j+=0.05){
+		double k = 1 - i - j;
+		if(k > 0){
+		    Weights[0] = i;
+		    Weights[1] = j;
+		    Weights[2] = k;
+		    double P = 0.0;
+		    for(List<String> sentence : sentences){
+			P+= getSentenceProbability(sentence);
+		    }
+		    if(P > PMax){
+			System.out.println("New: "+i+","+j+","+k+" = " + P);
+			newW[0] = i;
+			newW[1] = j;
+			newW[2] = k;
+			PMax = P;
+		    }
+		}
+	    }
+	}
+	System.out.println("New WIGHTS: "+newW[0]+","+newW[1]+","+newW[2]);
+	Weights = newW;
     }
     
     
@@ -100,8 +127,9 @@ public class InterpolationModel implements LanguageModel {
      * checks if the probability distribution properly sums up to 1
      */
     public double checkModel() {
-	return (Unigram.checkModel() + Bigram.checkModel() +
-		Trigram.checkModel())/ 3.0;
+	return (Weights[2] * Unigram.checkModel() + 
+		Weights[1] * Bigram.checkModel() +
+		Weights[0] * Trigram.checkModel());
     }    
     /**
      * Returns a random word sampled according to the model.  A simple
@@ -110,14 +138,14 @@ public class InterpolationModel implements LanguageModel {
      * mass until we reach our sample.
      */
     public String generateWord(String prewordTwo, String prewordOne) {
-	double sample = Math.random();
-	if(sample < Weights[0]){
+	//double sample = Math.random();
+	//if(sample < Weights[0]){
 	    return Trigram.generateWord(prewordTwo, prewordOne);
-	} else if(sample < Weights[0] + Weights[1]){
+	    /*} else if(sample < Weights[0] + Weights[1]){
 	    return Bigram.generateWord(prewordOne);
 	} else {
 	    return Unigram.generateWord();
-	}
+	    }*/
 	
 
 
